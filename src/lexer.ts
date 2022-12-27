@@ -1,12 +1,10 @@
 import { Token, match } from "./token";
 
-export function lex(src: string): Token[]{
-    const tokens: Token[] = [];
-    let current = 0;
-    // current += match(src, current, tokens);
-    // current += match(src, current, tokens);
-    while(current < src.length){
-        current += match(src, current, tokens);
+export function lex(src: string, current: number = 0, tokens: Token[] = []): Token[]{
+    if(current < src.length){
+        const len = match(src, current, tokens);
+        if(len === null) return [];
+        return lex(src, current + len, tokens);
     }
     return tokens;
 }

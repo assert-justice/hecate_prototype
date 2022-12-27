@@ -11,11 +11,24 @@ export type Token = {
     start: number,
 }
 
-function isNumeric(c:string){
-    const min = '0'.charCodeAt(0);
-    const max = '9'.charCodeAt(0);
-    const code = c.charCodeAt(0);
-    return min <= code && max >= code;
+const numeric = new RegExp('[0-9]+', 'y');
+
+
+function matchRegExp(src: string, start: number, rx: RegExp): string | null{
+    rx.lastIndex = start;
+    const pat = rx.exec(src);
+    if(pat === null) return null;
+    return pat[0];
+}
+
+type matchFn = (src: string, start: number) => string | null;
+
+function matchNumber(src: string, start: number): string | null{
+    //
+}
+export function match(src: string, start: number, tokens: Token[]): number | null{
+    matchRegExp(src, start, numeric);
+    return null;
 }
 
 // function number(src: string, start: number): string | null{
