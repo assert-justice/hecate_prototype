@@ -1,0 +1,3 @@
+let system = import('system');
+let message = 'Hello Hecate!';
+system.print(message);
