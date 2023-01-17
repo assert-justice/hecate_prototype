@@ -1,4 +1,4 @@
-export type TokenType = 'NUMBER' | 'IDENTIFIER' | 'DOCSTRING' | string;
+import { TokenType } from "./token_types"
 
 export type Token = {
     type: TokenType,

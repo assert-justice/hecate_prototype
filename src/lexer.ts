@@ -1,5 +1,7 @@
-import { Token, TokenType } from "./token";
-import { badChar, badToken } from "./error_display";
+import { Token } from "./token";
+import { TokenType } from "./token_types";
+import { badChar } from "./error_display";
+import { ops, keywords } from "./token_types";
 
 export class Lexer{
     tokens: Token[] = [];
@@ -7,53 +9,6 @@ export class Lexer{
     start: number = 0;
     errorText: string | null = null;
     src: string = '';
-    ops: Map<string,string>;
-    constructor(){
-        const names = new Map([
-            ['~', 'TILDE'],
-            ['!', 'BANG'],
-            ['%', 'PERCENT'],
-            ['^', 'CARROT'],
-            ['&', 'AMPERSAND'],
-            ['*', 'ASTERISK'],
-            ['(', 'LEFT-PAREN'],
-            [')', 'RIGHT-PAREN'],
-            ['-', 'NEGATIVE'],
-            ['_', 'UNDERSCORE'],
-            ['=', 'EQUALS'],
-            ['+', 'PLUS'],
-            ['[', 'LEFT-BRACKET'],
-            [']', 'RIGHT-BRACKET'],
-            ['{', 'LEFT-BRACE'],
-            ['}', 'RIGHT-BRACE'],
-            ['\\', 'BACKSLASH'],
-            ['|', 'PIPE'],
-            [';', 'SEMICOLON'],
-            [':', 'COLON'],
-            ['\'', 'A'],
-            ['"', 'QUOTE'],
-            [',', 'COMMA'],
-            ['.', 'PERIOD'],
-            ['<', 'LESS'],
-            ['>', 'GREATER'],
-            ['/', 'SLASH'],
-            ['?', 'QUESTION'],
-        ]);
-        const ops = new Map(names.entries());
-        '==,<=,>=,!=,::,=>,:?,:='.split(',').forEach(op => {
-            const name = op.split('').map(c => {
-                const n = names.get(c);
-                if(!n) throw 'something really wrong happened';
-                return n;
-            }).join('_');
-            ops.set(op, name);
-        });
-        ops.set('=>', 'ARROW');
-        ops.set(':?', 'ELVIS');
-        ops.set(':=', 'WALRUS');
-        
-        this.ops = ops;
-    }
     // Utilities
     reset(){
         this.tokens = [];
@@ -116,7 +71,16 @@ export class Lexer{
         if(!this.isAlpha(this.peek())) return false;
         this.advance();
         this.match(/\w+/);
-        this.addToken('IDENTIFIER', this.getLiteral());
+        const lit = this.getLiteral();
+        if(lit === 'true' || lit === 'false'){
+            this.addToken('BOOLEAN', lit);
+        }
+        else if(keywords.has(lit)){
+            this.addToken(lit.toUpperCase() as TokenType, lit);
+        }
+        else{
+            this.addToken('IDENTIFIER', this.getLiteral());
+        }
         return true;
     }
     number(): boolean{
@@ -134,14 +98,9 @@ export class Lexer{
         return true;
     }
     operator(): boolean{
-        // let match: string | undefined = undefined;
-        // let pat = this.src.slice(this.start, this.start+2);
-        // if(this.ops.has(pat)) match = this.ops.get(pat);
-        // else if()
-        // if(!match)
         let longest = '';
         let name = ''
-        for (const [op, opName] of this.ops) {
+        for (const [op, opName] of ops) {
             if(op.length > longest.length && this.src.indexOf(op, this.start) === this.start){
                 longest = op;
                 name = opName;
@@ -150,7 +109,7 @@ export class Lexer{
         if(longest === '') return false;
         this.current += longest.length;
         const lit = this.getLiteral();
-        this.addToken(name, lit);
+        this.addToken(name as TokenType, lit);
         return true;
     }
     parse(src: string): Token[]{
