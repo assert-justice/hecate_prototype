@@ -12,7 +12,7 @@ const names = new Map([
     [')', 'RIGHT-PAREN'],
     ['-', 'NEGATIVE'],
     ['_', 'UNDERSCORE'],
-    ['=', 'EQUALS'],
+    ['=', 'EQUAL'],
     ['+', 'PLUS'],
     ['[', 'LEFT-BRACKET'],
     [']', 'RIGHT-BRACKET'],
@@ -66,3 +66,4 @@ export const keywords = new Map([${[...keywords.entries()].map(entryToString)}])
 `;
 
 fs.writeFileSync('./src/token_types.ts', txt);
+console.log('Code gen completed successfully!');
