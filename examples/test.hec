@@ -1,1 +1,2 @@
-abcd
+isPrime = (x) => {
+    root = x.math.sqrt().integer();
