@@ -85,7 +85,7 @@ export class Lexer{
     }
     number(): boolean{
         const prefix = this.match(/0x|0b|0o/) ?? '';
-        if(!this.match(/\d(\d|_)+/)) {
+        if(!this.match(/\d(\d|_)*/)) {
             if(prefix === '') return false;
             this.reportError('Unexpected end of number literal');
         }
