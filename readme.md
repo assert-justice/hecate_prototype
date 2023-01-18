@@ -33,20 +33,6 @@ Looks pretty straightforward so far! A couple things to note:
 
 Variables in Hecate are constant and immutable. They cannot be modified or reassigned. The following code produces an error:
 
-```
-system = import('system');
-message = 'Hello Hecate!';
-message = 'Hello Error!'; // compile time error
-system.print(message);
-```
-This is fine though.
-```
-system = import('system');
-message = 'Hello Hecate!';
-message = 'Hello Error!'; // compile time error
-system.print(message);
-```
-
 ### Prime Test
 
 ```

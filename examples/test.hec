@@ -1,1 +1,17 @@
- yo let "sup, party" be 0
+math = import("math");
+
+isPrime :: int => bool;
+/*
+
+*/
+isPrime = (x) => {
+    root = x.math.sqrt().int();
+    anon: int => bool;
+    anon = (n) => {
+        if n > root {false} 
+        elif x % n == 0 {false} 
+        else {anon(n + 2)}
+    };
+    if x == 1 {false}
+    else {anon(2)}
+};
