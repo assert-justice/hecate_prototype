@@ -2,6 +2,7 @@ import { Token } from "./token";
 import { TokenType } from "./token_types";
 import { badChar } from "./error_display";
 import { ops, keywords } from "./token_types";
+import { string } from "fast-check";
 
 export class Lexer{
     tokens: Token[] = [];
@@ -17,6 +18,7 @@ export class Lexer{
         this.errorText = null;
     }
     peek(): string{
+        if(this.atEof()) return '\0';
         return this.src[this.current];
     }
     advance(): string{
@@ -38,8 +40,16 @@ export class Lexer{
     isWhitespace(c: string){
         return ' \t\r\n'.includes(c);
     }
-    match(regex: RegExp): string | null{
-        const arr = regex.exec(this.src.slice(this.current));
+    match(pattern: RegExp | string): string | null{
+        if(typeof pattern === 'string'){
+            const res = this.src.indexOf(pattern, this.current) === this.current;
+            if(res) {
+                this.current += pattern.length;
+                return pattern;
+            }
+            return null;
+        }
+        const arr = pattern.exec(this.src.slice(this.current));
         if(arr === null) return null;
         const res = arr[0];
         if(arr.index !== 0) return null;
@@ -64,8 +74,50 @@ export class Lexer{
         throw 'Parse failed';
     }
     // Patterns
+    comment(): boolean{
+        if(this.src.indexOf('//', this.start) !== this.start) return false;
+        const newline = this.src.indexOf('\n');
+        if(newline === -1) this.current = this.src.length;
+        else this.current = newline + 1;
+        return true;
+    }
+    docstring(): boolean{
+        if(!this.match('/*')) return false;
+        let depth = 1;
+        while(!this.atEof()){
+            if(this.match('/*')) depth++;
+            else if(this.match('*/')) depth--;
+            if(depth === 0) break;
+            this.advance();
+        }
+        if(depth !== 0) this.reportError('Unexpected eof, unterminated docstring')
+        const lit = this.getLiteral();
+        this.addToken('DOCSTRING_LIT', lit, lit.slice(2, lit.length - 2));
+        return true;
+    }
     whitespace(): boolean{
         return this.match(/[\s\n]+/) !== null;
+    }
+    character():boolean{
+        const res = this.match(/'.'/);
+        if(!res) return false;
+        this.addToken('CHARACTER_LIT', this.getLiteral(), this.src[this.start + 1]);
+        return true;
+    }
+    string():boolean{
+        if(!this.match('"')) return false;
+        let broken = false;
+        while(!this.atEof()){
+            if(!this.match('"')) this.advance();
+            else{
+                broken = true;
+                break;
+            }
+        }
+        if(!broken) this.reportError('Unexpected eof, unterminated string');
+        const lit = this.getLiteral();
+        this.addToken('STRING_LIT', lit, lit.slice(1, lit.length - 1));
+        return true;
     }
     identifier(): boolean{
         if(!this.isAlpha(this.peek())) return false;
@@ -73,7 +125,7 @@ export class Lexer{
         this.match(/\w+/);
         const lit = this.getLiteral();
         if(lit === 'true' || lit === 'false'){
-            this.addToken('BOOLEAN', lit);
+            this.addToken('BOOLEAN_LIT', lit);
         }
         else if(keywords.has(lit)){
             this.addToken(lit.toUpperCase() as TokenType, lit);
@@ -94,7 +146,7 @@ export class Lexer{
             if(!res) this.reportError('Unexpected end of number literal');
         }
         if(this.peek() === '.') this.reportError('Unexpected decimal point after number literal');
-        this.addToken('NUMBER', this.getLiteral());
+        this.addToken('NUMBER_LIT', this.getLiteral());
         return true;
     }
     operator(): boolean{
@@ -116,7 +168,11 @@ export class Lexer{
         this.reset();
         this.src = src;
         const patterns = [
-            ()=>this.whitespace(), 
+            ()=>this.whitespace(),
+            ()=>this.docstring(),
+            ()=>this.comment(),
+            ()=>this.character(), 
+            ()=>this.string(),
             ()=>this.operator(),
             ()=>this.identifier(),
             ()=>this.number(),

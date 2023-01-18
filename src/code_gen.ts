@@ -45,11 +45,11 @@ ops.set(':?', 'ELVIS');
 ops.set(':=', 'WALRUS');
 
 let keywords = new Map(
-    'none,if,elif,else,return'.split(',').map(k=>[k,k.toUpperCase()])
+    'none,if,elif,else,return,int,float,bool,string'.split(',').map(k=>[k,k.toUpperCase()])
 );
 
 let types = [...ops.values()];
-types = types.concat('NUMBER,IDENTIFIER,STRING,DOCSTRING,BOOLEAN'.split(','));
+types = types.concat('CHARACTER_LIT,NUMBER_LIT,IDENTIFIER,STRING_LIT,DOCSTRING_LIT,BOOLEAN_LIT'.split(','));
 types = types.concat([...keywords.values()]);
 
 // 'true,false'.split(',').forEach(k => keywords.set(k, k.toUpperCase()));

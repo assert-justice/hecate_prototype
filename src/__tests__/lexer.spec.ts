@@ -8,14 +8,14 @@ describe('Lexer does stuff', ()=>{
         const tokens = lex.parse('1234 5678');
         expect(tokens.every(token => token.type === 'NUMBER')).toBe(true);
     });
-    test('it implements fast check', ()=>fc.assert(
+    test('it parses numbers', ()=>fc.assert(
         fc.property(
-            fc.array(fc.integer()),
+            fc.array(fc.nat()),
             arr => {
-                const src = arr.map(Math.abs).join(' ');
+                const src = arr.join(' ');
                 const lex = new Lexer();
                 const tokens = lex.parse(src);
-                return tokens.every(token => token.type === 'NUMBER');
+                return tokens.every(token => ['NUMBER', 'NEGATIVE'].includes(token.type));
             }
         )
     ));
